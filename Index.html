@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross Stitch Image Finder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+–bg:      #0f1117;
+–surface: #1a1d27;
+–surf2:   #22263a;
+–border:  #2e3350;
+–text:    #e8e6e0;
+–muted:   #8a8fa8;
+–gold:    #d4a843;
+–rust:    #c4603a;
+–sage:    #7a9c6a;
+–green:   #5db870;
+–warn:    #c49a3c;
+–red:     #c05050;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Crimson Text’, Georgia, serif;
+font-size: 18px;
+min-height: 100vh;
+}
+
+header {
+background: var(–surface);
+border-bottom: 3px solid var(–gold);
+padding: 1.4rem 2rem;
+display: flex;
+align-items: center;
+gap: 1.2rem;
+}
+.logo { font-size: 2.2rem; }
+header h1 { font-family: ‘Playfair Display’, serif; font-size: 1.5rem; font-weight: 400; color: var(–text); }
+header p  { font-style: italic; color: var(–gold); font-size: 0.88rem; margin-top: 0.15rem; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.tabs { display: flex; border-bottom: 2px solid var(–border); margin-bottom: 2rem; }
+.tab-btn {
+background: none; border: none; border-bottom: 3px solid transparent;
+margin-bottom: -2px; padding: 0.6rem 1.3rem;
+font-family: ‘Playfair Display’, serif; font-size: 0.95rem;
+color: var(–muted); cursor: pointer; transition: all 0.15s;
+}
+.tab-btn.active { color: var(–text); border-bottom-color: var(–rust); font-weight: 700; }
+.tab-btn:hover:not(.active) { color: var(–text); background: rgba(255,255,255,0.04); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+label { display: block; font-family: ‘Playfair Display’, serif; font-size: 0.88rem; color: var(–gold); margin-bottom: 0.35rem; }
+
+input[type=“text”], select, textarea {
+width: 100%; padding: 0.6rem 0.85rem;
+border: 1.5px solid var(–border); border-radius: 5px;
+background: var(–surf2); color: var(–text);
+font-family: ‘Crimson Text’, serif; font-size: 1rem;
+outline: none; transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(–gold); }
+select option { background: var(–surf2); color: var(–text); }
+textarea { height: 80px; resize: vertical; }
+
+.input-group { margin-bottom: 1.1rem; }
+.row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.row .input-group { flex: 1; min-width: 150px; }
+
+.btn-primary {
+padding: 0.7rem 1.8rem; border: none; border-radius: 5px;
+font-family: ‘Playfair Display’, serif; font-size: 1rem;
+cursor: pointer; transition: background 0.2s;
+background: var(–rust); color: #fff; width: 100%; margin-top: 0.3rem;
+}
+.btn-primary:hover { background: #a84828; }
+.btn-primary:disabled { background: #2a2a3a; color: var(–muted); cursor: not-allowed; }
+
+.btn-sm {
+padding: 0.3rem 0.8rem; font-size: 0.78rem;
+background: var(–surf2); color: var(–text);
+border-radius: 4px; font-family: ‘DM Mono’, monospace;
+cursor: pointer; border: 1px solid var(–border);
+transition: all 0.15s; text-decoration: none; display: inline-block;
+}
+.btn-sm:hover { background: var(–rust); border-color: var(–rust); color: #fff; }
+.btn-sage { background: var(–sage); border-color: var(–sage); color: #fff; }
+.btn-sage:hover { background: #5a7c4a; }
+
+.loading { text-align: center; padding: 2.5rem; color: var(–muted); font-style: italic; }
+.spinner {
+display: inline-block; width: 18px; height: 18px;
+border: 2px solid var(–border); border-top-color: var(–rust);
+border-radius: 50%; animation: spin 0.7s linear infinite;
+margin-right: 0.5rem; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.results-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+gap: 1.1rem; margin-top: 1.2rem;
+}
+
+.card {
+background: var(–surface); border: 1.5px solid var(–border);
+border-radius: 8px; padding: 1rem 1.1rem;
+transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card:hover { border-color: var(–gold); box-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+.card-title { font-family: ‘Playfair Display’, serif; font-size: 0.95rem; color: var(–text); margin-bottom: 0.2rem; line-height: 1.3; }
+.card-meta  { font-size: 0.8rem; color: var(–muted); font-style: italic; margin-bottom: 0.45rem; }
+.card-desc  { font-size: 0.88rem; color: var(–text); opacity: 0.85; margin-bottom: 0.7rem; line-height: 1.45; }
+.card-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+.badge {
+display: inline-block; font-family: ‘DM Mono’, monospace;
+font-size: 0.6rem; padding: 0.1rem 0.4rem;
+border-radius: 3px; letter-spacing: 0.04em;
+margin-bottom: 0.5rem; margin-right: 0.3rem;
+}
+.badge-pd   { background: var(–sage); color: #fff; }
+.badge-warn { background: var(–warn); color: #fff; }
+
+.fit-badge {
+display: inline-block; font-family: ‘DM Mono’, monospace;
+font-size: 0.6rem; padding: 0.1rem 0.35rem;
+border-radius: 3px; margin-bottom: 0.5rem;
+}
+
+.info-box {
+background: rgba(122,156,106,0.1); border: 1px solid var(–sage);
+border-radius: 6px; padding: 0.9rem 1.2rem;
+color: #a8c898; margin-bottom: 1.3rem;
+font-size: 0.92rem; font-style: italic; line-height: 1.55;
+}
+
+.error-box {
+background: rgba(192,80,80,0.12); border: 1px solid var(–red);
+border-radius: 6px; padding: 0.9rem 1.2rem;
+color: #e09090; margin-top: 1rem;
+font-size: 0.88rem; white-space: pre-wrap; word-break: break-all;
+}
+
+.eval-result {
+margin-top: 1.8rem; background: var(–surface);
+border: 1.5px solid var(–border); border-radius: 8px; overflow: hidden;
+}
+.eval-header {
+background: var(–surf2); color: var(–text);
+padding: 0.75rem 1.2rem; font-family: ‘Playfair Display’, serif;
+font-size: 1rem; border-bottom: 1px solid var(–border);
+}
+.eval-body { padding: 1.2rem 1.4rem; }
+
+.score-row { display: flex; gap: 0.8rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.score-card {
+flex: 1; min-width: 95px; background: var(–surf2);
+border: 1px solid var(–border); border-radius: 6px;
+padding: 0.6rem 0.9rem; text-align: center;
+}
+.sc-lbl {
+font-family: ‘DM Mono’, monospace; font-size: 0.58rem;
+color: var(–muted); text-transform: uppercase;
+letter-spacing: 0.08em; display: block; margin-bottom: 0.22rem;
+}
+.sc-val { font-family: ‘Playfair Display’, serif; font-size: 1.2rem; line-height: 1.2; }
+
+.eval-section { border-top: 1px solid var(–border); padding-top: 0.9rem; margin-top: 0.9rem; }
+.eval-section h4 { font-family: ‘Playfair Display’, serif; font-size: 0.92rem; color: var(–gold); margin-bottom: 0.45rem; }
+.eval-section p  { font-size: 0.95rem; line-height: 1.65; color: var(–text); }
+
+.history-item {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 6px; padding: 0.85rem 1rem;
+margin-bottom: 0.65rem; cursor: pointer; transition: border-color 0.15s;
+}
+.history-item:hover { border-color: var(–gold); }
+.hi-title { font-family: ‘Playfair Display’, serif; font-size: 0.92rem; color: var(–text); }
+.hi-meta  { font-size: 0.78rem; color: var(–muted); font-style: italic; margin-top: 0.2rem; }
+.history-empty { text-align: center; color: var(–muted); font-style: italic; padding: 3rem 0; }
+
+.results-count { font-family: ‘DM Mono’, monospace; font-size: 0.78rem; color: var(–muted); margin-top: 1rem; }
+
+footer {
+text-align: center; padding: 1.8rem 1rem;
+color: var(–muted); font-size: 0.82rem; font-style: italic;
+border-top: 1px solid var(–border); margin-top: 3rem;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="logo">🧵</div>
+  <div>
+    <h1>Cross Stitch Image Finder</h1>
+    <p>AI-powered public domain search + copyright analysis</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tbtn-search"   onclick="switchTab('search')">🔍 Search Archives</button>
+    <button class="tab-btn"        id="tbtn-evaluate" onclick="switchTab('evaluate')">✅ Evaluate an Image</button>
+    <button class="tab-btn"        id="tbtn-history"  onclick="switchTab('history')">📋 History</button>
+  </div>
+
+  <!-- SEARCH -->
+
+  <div id="tab-search" class="tab-panel active">
+    <div class="info-box">
+      Describe what you're looking for. Claude recommends specific pre-1928 public domain illustrations from BHL, Rawpixel, the Met, and Pictureboxblue — with direct links and cross stitch ratings.
+    </div>
+    <div class="row">
+      <div class="input-group" style="flex:2; min-width:200px;">
+        <label>What are you looking for?</label>
+        <input type="text" id="searchQuery" placeholder="wildflowers, hummingbirds, mushrooms, ferns..." onkeydown="if(event.key==='Enter') doSearch()" />
+      </div>
+      <div class="input-group">
+        <label>Style</label>
+        <select id="styleFilter">
+          <option value="any style">Any</option>
+          <option value="botanical illustration">Botanical illustration</option>
+          <option value="Audubon natural history">Audubon / natural history</option>
+          <option value="Japanese woodblock print">Japanese woodblock</option>
+          <option value="vintage ornate illustration">Vintage / ornate</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" id="searchBtn" onclick="doSearch()">🔍 Find Public Domain Images</button>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- EVALUATE -->
+
+  <div id="tab-evaluate" class="tab-panel">
+    <div class="info-box">
+      Paste any image URL or page URL. Claude scores it for cross stitch suitability and gives a clear copyright verdict for commercial selling on Etsy or Gumroad.
+    </div>
+    <div class="input-group">
+      <label>Image or page URL</label>
+      <input type="text" id="evalUrl" placeholder="https://www.biodiversitylibrary.org/bibliography/12345" />
+    </div>
+    <div class="input-group">
+      <label>Describe the image (optional)</label>
+      <textarea id="evalDesc" placeholder="e.g. Pre-1880 botanical plate of roses, German publication, fine detail..."></textarea>
+    </div>
+    <div class="row">
+      <div class="input-group">
+        <label>Target pattern size</label>
+        <select id="evalGrid">
+          <option value="50x50 stitches (beginner)">Small — 50×50</option>
+          <option value="100x100 stitches (standard)" selected>Medium — 100×100</option>
+          <option value="150x150+ stitches (advanced)">Large — 150×150+</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Source archive</label>
+        <select id="evalSrc">
+          <option value="Biodiversity Heritage Library - pre-1928 public domain">Biodiversity Heritage Library</option>
+          <option value="Metropolitan Museum of Art - confirmed CC0">Metropolitan Museum</option>
+          <option value="Rawpixel public domain section">Rawpixel</option>
+          <option value="Rijksmuseum - confirmed CC0">Rijksmuseum</option>
+          <option value="Smithsonian Open Access CC0">Smithsonian</option>
+          <option value="Pictureboxblue - curated pre-1928 public domain">Pictureboxblue</option>
+          <option value="Unknown source - needs full verification">Unknown</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" id="evalBtn" onclick="doEvaluate()">✅ Analyze for Cross Stitch &amp; Copyright</button>
+    <div id="evalResult"></div>
+  </div>
+
+  <!-- HISTORY -->
+
+  <div id="tab-history" class="tab-panel">
+    <div id="historyContent"></div>
+  </div>
+
+</div>
+
+<footer>All recommended sources contain confirmed public domain or CC0 content free for commercial use. Always verify individual image dates before selling.</footer>
+
+<script>
+const ANTHROPIC_KEY = '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';
+let evalHistory = [];
+try { evalHistory = JSON.parse(localStorage.getItem('csHistory') || '[]'); } catch(e) {}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tbtn-' + name).classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+async function callClaude(system, user) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2000,
+      system: system,
+      messages: [{ role: 'user', content: user }]
+    })
+  });
+
+  const data = await resp.json();
+  if (!resp.ok) throw new Error('API error ' + resp.status + ': ' + JSON.stringify(data).substring(0, 200));
+  if (data.error) throw new Error('Claude error: ' + JSON.stringify(data.error));
+  const blocks = (data.content || []).filter(b => b.type === 'text');
+  if (!blocks.length) throw new Error('No text in response: ' + JSON.stringify(data).substring(0, 200));
+  return blocks.map(b => b.text).join('\n');
+}
+
+function extractJSON(raw, shape) {
+  const clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  try { return JSON.parse(clean); } catch(e) {}
+  const pat = shape === 'array' ? /\[[\s\S]*\]/ : /\{[\s\S]*\}/;
+  const m = clean.match(pat);
+  if (m) { try { return JSON.parse(m[0]); } catch(e) {} }
+  throw new Error('Response was not valid JSON. Raw:\n' + raw.substring(0, 600));
+}
+
+// ── SEARCH ───────────────────────────────────────────────────
+async function doSearch() {
+  const query = document.getElementById('searchQuery').value.trim();
+  const style = document.getElementById('styleFilter').value;
+  if (!query) return;
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  document.getElementById('searchResults').innerHTML =
+    '<div class="loading"><span class="spinner"></span>Finding public domain illustrations...</div>';
+
+  const system = `You are an expert on public domain illustration archives. Your job is to recommend specific illustrations for someone making cross stitch patterns to sell on Etsy.
+
+You must respond with ONLY a valid JSON array. No explanation, no markdown fences, no text before or after. Start your response with [ and end with ].
+
+Each object in the array:
+{
+  "title": "publication title",
+  "author": "author name or Unknown",
+  "date": "year or decade",
+  "source": "BHL or Rawpixel or Met or Pictureboxblue",
+  "url": "direct URL",
+  "description": "one sentence describing the illustration",
+  "public_domain": true,
+  "stitch_fit": "High or Medium or Low",
+  "reason": "one sentence why this works for cross stitch"
+}
+
+URL formats to use:
+BHL: https://www.biodiversitylibrary.org/bibliography/REAL_NUMERIC_ID
+Rawpixel: https://www.rawpixel.com/search?q=SEARCH+TERMS&sort=curated&mode=shop&minify=true&lic=free
+Met: https://www.metmuseum.org/art/collection/search?showOnly=openAccess&q=SEARCH+TERMS
+Pictureboxblue: https://www.pictureboxblue.com/PAGE-SLUG/`;
+
+  const user = `Find 6 pre-1928 public domain illustrations of: ${query}
+Style preference: ${style}
+Respond with ONLY the JSON array.`;
+
+  try {
+    const raw = await callClaude(system, user);
+    const items = extractJSON(raw, 'array');
+    renderSearchResults(items, query);
+  } catch(e) {
+    document.getElementById('searchResults').innerHTML =
+      `<div class="error-box"><strong>Error:</strong> ${e.message}</div>`;
+  }
+  btn.disabled = false;
+}
+
+function renderSearchResults(items, query) {
+  let html = `<div class="results-count">${items.length} results for "${query}"</div><div class="results-grid">`;
+
+  items.forEach(item => {
+    const title = (item.title || 'Untitled').replace(/</g, '&lt;').substring(0, 62);
+    const isPD = item.public_domain;
+    const cpBadge = isPD
+      ? '<span class="badge badge-pd">✓ PUBLIC DOMAIN</span>'
+      : '<span class="badge badge-warn">⚠ VERIFY DATE</span>';
+
+    const fitColor = item.stitch_fit === 'High' ? 'var(--green)' : item.stitch_fit === 'Medium' ? 'var(--warn)' : 'var(--muted)';
+    const fitBadge = `<span class="fit-badge" style="border:1px solid ${fitColor};color:${fitColor};">⟡ ${item.stitch_fit || '?'} fit</span>`;
+
+    const safeUrl  = (item.url || '').replace(/'/g, "\\'");
+    const safeDesc = (item.description || '').replace(/'/g, "\\'").substring(0, 120);
+
+    html += `<div class="card">
+      <div>${cpBadge}${fitBadge}</div>
+      <div class="card-title">${title}</div>
+      <div class="card-meta">${item.author || 'Unknown'} · ${item.date || ''} · ${item.source || ''}</div>
+      <div class="card-desc">${item.reason || item.description || ''}</div>
+      <div class="card-actions">
+        ${item.url ? `<a href="${item.url}" target="_blank" class="btn-sm">📖 View</a>` : ''}
+        <button class="btn-sm btn-sage" onclick="goEvaluate('${safeUrl}','${safeDesc}')">✅ Evaluate</button>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('searchResults').innerHTML = html;
+}
+
+function goEvaluate(url, desc) {
+  document.getElementById('evalUrl').value  = url;
+  document.getElementById('evalDesc').value = desc;
+  switchTab('evaluate');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── EVALUATE ─────────────────────────────────────────────────
+async function doEvaluate() {
+  const url  = document.getElementById('evalUrl').value.trim();
+  const desc = document.getElementById('evalDesc').value.trim();
+  const grid = document.getElementById('evalGrid').value;
+  const src  = document.getElementById('evalSrc').value;
+
+  if (!url && !desc) {
+    document.getElementById('evalResult').innerHTML = '<div class="error-box">Please enter a URL or description.</div>';
+    return;
+  }
+
+  const btn = document.getElementById('evalBtn');
+  btn.disabled = true;
+  document.getElementById('evalResult').innerHTML =
+    '<div class="loading"><span class="spinner"></span>Analyzing...</div>';
+
+  const system = `You are an expert in cross stitch pattern design and US copyright law for Etsy and Gumroad sellers.
+
+Respond with ONLY a valid JSON object. No explanation, no markdown, no text before or after. Start with { and end with }.
+
+Schema:
+{
+  "score": 7,
+  "verdict": "CLEARED",
+  "colors": "Medium (15-30 colors)",
+  "difficulty": "Intermediate",
+  "stitch_notes": "2-3 sentences on cross stitch suitability",
+  "copyright_notes": "2-3 sentences on copyright and commercial safety",
+  "tips": "2-3 practical conversion tips",
+  "price": "$5-8"
+}
+
+verdict must be one of: CLEARED | LIKELY CLEARED | VERIFY BEFORE SELLING | DO NOT USE`;
+
+  const user = `Analyze this image for cross stitch pattern creation and commercial sale on Etsy.
+URL: ${url || 'not provided'}
+Description: ${desc || 'not provided'}
+Source archive: ${src}
+Target pattern size: ${grid}
+Respond with ONLY the JSON object.`;
+
+  try {
+    const raw = await callClaude(system, user);
+    const a = extractJSON(raw, 'object');
+    renderEvalResult(a, url);
+
+    const entry = { url, desc, verdict: a.verdict, score: a.score, a, ts: new Date().toLocaleString() };
+    evalHistory.unshift(entry);
+    if (evalHistory.length > 40) evalHistory.pop();
+    try { localStorage.setItem('csHistory', JSON.stringify(evalHistory)); } catch(e) {}
+  } catch(e) {
+    document.getElementById('evalResult').innerHTML =
+      `<div class="error-box"><strong>Error:</strong> ${e.message}</div>`;
+  }
+  btn.disabled = false;
+}
+
+function scoreColor(n) {
+  return n >= 7 ? 'var(--green)' : n >= 5 ? 'var(--warn)' : 'var(--red)';
+}
+function verdictColor(v) {
+  v = (v || '').toUpperCase();
+  return v.includes('CLEARED') ? 'var(--green)' : v.includes('VERIFY') ? 'var(--warn)' : 'var(--red)';
+}
+
+function renderEvalResult(a, url) {
+  const linkHtml = url
+    ? `<div class="eval-section"><h4>🔗 Source</h4><p><a href="${url}" target="_blank" style="color:var(--rust);font-family:'DM Mono',monospace;font-size:0.8rem;word-break:break-all;">${url}</a></p></div>`
+    : '';
+
+  document.getElementById('evalResult').innerHTML = `
+    <div class="eval-result">
+      <div class="eval-header">📊 Analysis Results</div>
+      <div class="eval-body">
+        <div class="score-row">
+          <div class="score-card">
+            <span class="sc-lbl">Pattern Score</span>
+            <span class="sc-val" style="color:${scoreColor(a.score)}">${a.score}/10</span>
+          </div>
+          <div class="score-card">
+            <span class="sc-lbl">Copyright</span>
+            <span class="sc-val" style="color:${verdictColor(a.verdict)};font-size:0.72rem;">${a.verdict}</span>
+          </div>
+          <div class="score-card">
+            <span class="sc-lbl">Colors</span>
+            <span class="sc-val" style="font-size:0.72rem;">${a.colors}</span>
+          </div>
+          <div class="score-card">
+            <span class="sc-lbl">Sell Price</span>
+            <span class="sc-val" style="font-size:0.88rem;">${a.price}</span>
+          </div>
+        </div>
+        <div class="eval-section"><h4>🪡 Cross Stitch Suitability</h4><p>${a.stitch_notes}</p></div>
+        <div class="eval-section"><h4>⚖️ Copyright &amp; Commercial Use</h4><p>${a.copyright_notes}</p></div>
+        <div class="eval-section"><h4>💡 Conversion Tips</h4><p>${a.tips}</p></div>
+        ${linkHtml}
+      </div>
+    </div>`;
+}
+
+// ── HISTORY ──────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('historyContent');
+  if (!evalHistory.length) {
+    el.innerHTML = '<div class="history-empty">No evaluations yet. Use the Evaluate tab to build your history.</div>';
+    return;
+  }
+  let html = `<button onclick="clearHistory()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:0.3rem 0.85rem;border-radius:4px;font-family:'Crimson Text',serif;font-size:0.9rem;cursor:pointer;margin-bottom:1rem;">Clear history</button>`;
+  evalHistory.forEach((item, i) => {
+    const sc = scoreColor(item.score);
+    const preview = (item.desc || item.url || '').substring(0, 80);
+    html += `<div class="history-item" onclick="restoreEval(${i})">
+      <div class="hi-title">
+        <span style="color:${sc};font-weight:600;">${item.score}/10</span> ·
+        <span style="color:var(--rust);">${item.verdict}</span> ·
+        ${preview}${preview.length >= 80 ? '…' : ''}
+      </div>
+      <div class="hi-meta">${item.ts} · click to view</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function restoreEval(i) {
+  const item = evalHistory[i];
+  document.getElementById('evalUrl').value  = item.url  || '';
+  document.getElementById('evalDesc').value = item.desc || '';
+  renderEvalResult(item.a, item.url);
+  switchTab('evaluate');
+}
+
+function clearHistory() {
+  evalHistory = [];
+  try { localStorage.removeItem('csHistory'); } catch(e) {}
+  renderHistory();
+}
+</script>
+
+</body>
+</html>
