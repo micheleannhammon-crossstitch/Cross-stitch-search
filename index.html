@@ -59,7 +59,6 @@ textarea{height:80px;resize:vertical;}
 .history-empty{text-align:center;color:var(--muted);font-style:italic;padding:3rem 0;}
 .results-count{font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted);margin-top:1rem;}
 footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82rem;font-style:italic;border-top:1px solid var(--border);margin-top:3rem;}
-/* API KEY SETUP OVERLAY */
 #keyOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;}
 #keyBox{background:var(--surface);border:2px solid var(--gold);border-radius:12px;padding:2rem;max-width:500px;width:90%;}
 #keyBox h2{font-family:'Playfair Display',serif;color:var(--gold);margin-bottom:1rem;font-size:1.4rem;}
@@ -67,7 +66,6 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
 #keyBox a{color:var(--rust);}
 #keyBox .note{color:var(--muted);font-size:0.82rem;font-style:italic;margin-top:0.8rem;}
 #keyInput{background:var(--surf2);border:1.5px solid var(--border);color:var(--text);padding:0.7rem 1rem;border-radius:5px;width:100%;font-family:'DM Mono',monospace;font-size:0.85rem;margin-bottom:1rem;outline:none;}
-#keyInput:focus{border-color:var(--gold);}
 #saveKeyBtn{background:var(--rust);color:#fff;border:none;padding:0.7rem 2rem;border-radius:5px;font-family:'Playfair Display',serif;font-size:1rem;cursor:pointer;width:100%;}
 #keyStatus{color:var(--red);font-size:0.85rem;margin-top:0.5rem;min-height:1.2em;}
 #changeKeyBtn{background:none;border:1px solid var(--border);color:var(--muted);padding:0.25rem 0.7rem;border-radius:4px;font-size:0.78rem;cursor:pointer;font-family:'DM Mono',monospace;margin-left:0.5rem;}
@@ -75,17 +73,16 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
 </head>
 <body>
 
-<!-- API KEY OVERLAY -->
 <div id="keyOverlay">
   <div id="keyBox">
     <h2>Welcome to Cross Stitch Finder</h2>
     <p>This tool uses the Anthropic Claude API to find public domain illustrations for your cross stitch patterns.</p>
-    <p>To get started, enter your Anthropic API key below. It will be saved in your browser only - never sent anywhere else.</p>
-    <p>Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> under API Keys.</p>
-    <input type="password" id="keyInput" placeholder="sk-ant-api03-..." />
+    <p>Enter your Anthropic API key below. It is saved in your browser only and never shared anywhere.</p>
+    <p>Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> under API Keys.</p>
+    <input type="password" id="keyInput" placeholder="sk-ant-api03-..."/>
     <button id="saveKeyBtn" onclick="saveKey()">Save Key and Start</button>
     <div id="keyStatus"></div>
-    <p class="note">Your key is stored only in your browser's local storage and is never shared or uploaded anywhere.</p>
+    <p class="note">Your key is stored only in your browser local storage and is never uploaded anywhere.</p>
   </div>
 </div>
 
@@ -107,7 +104,7 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
   </div>
 
   <div id="tab-search" class="tab-panel active">
-    <div class="info-box">Describe what you are looking for. Claude recommends specific pre-1928 public domain illustrations from BHL, Rawpixel, the Met, and Pictureboxblue with direct links and cross stitch ratings.</div>
+    <div class="info-box">Describe what you are looking for. Claude finds specific pre-1928 public domain illustrations from Rawpixel, the Met, Pictureboxblue, and Rijksmuseum. Click View to go directly to the downloadable image.</div>
     <div class="row">
       <div class="input-group" style="flex:2;min-width:200px;">
         <label>What are you looking for?</label>
@@ -121,6 +118,7 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
           <option value="Audubon natural history">Audubon / natural history</option>
           <option value="Japanese woodblock print">Japanese woodblock</option>
           <option value="vintage ornate illustration">Vintage / ornate</option>
+          <option value="cottagecore mushroom illustration">Cottagecore</option>
         </select>
       </div>
     </div>
@@ -132,7 +130,7 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
     <div class="info-box">Paste any image URL or page URL. Claude scores it for cross stitch suitability and gives a clear copyright verdict for commercial selling on Etsy or Gumroad.</div>
     <div class="input-group">
       <label>Image or page URL</label>
-      <input type="text" id="evalUrl" placeholder="https://www.biodiversitylibrary.org/bibliography/12345"/>
+      <input type="text" id="evalUrl" placeholder="https://www.rawpixel.com/image/12345 or any image link..."/>
     </div>
     <div class="input-group">
       <label>Describe the image (optional)</label>
@@ -150,12 +148,12 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
       <div class="input-group">
         <label>Source archive</label>
         <select id="evalSrc">
-          <option value="Biodiversity Heritage Library - pre-1928 public domain">Biodiversity Heritage Library</option>
+          <option value="Rawpixel public domain section - free for commercial use">Rawpixel</option>
           <option value="Metropolitan Museum of Art - confirmed CC0">Metropolitan Museum</option>
-          <option value="Rawpixel public domain section">Rawpixel</option>
+          <option value="Pictureboxblue - curated pre-1928 public domain">Pictureboxblue</option>
           <option value="Rijksmuseum - confirmed CC0">Rijksmuseum</option>
           <option value="Smithsonian Open Access CC0">Smithsonian</option>
-          <option value="Pictureboxblue - curated pre-1928 public domain">Pictureboxblue</option>
+          <option value="Biodiversity Heritage Library - pre-1928 public domain">Biodiversity Heritage Library</option>
           <option value="Unknown source - needs full verification">Unknown</option>
         </select>
       </div>
@@ -169,15 +167,13 @@ footer{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-size:0.82re
   </div>
 </div>
 
-<footer>All recommended sources contain confirmed public domain or CC0 content free for commercial use.</footer>
+<footer>All recommended sources contain confirmed public domain or CC0 content free for commercial use. Always verify individual image dates before selling.</footer>
 
 <script>
 var hist = [];
 try { hist = JSON.parse(localStorage.getItem('csh') || '[]'); } catch(e) {}
 
-function getKey() {
-  return localStorage.getItem('csApiKey') || '';
-}
+function getKey() { return localStorage.getItem('csApiKey') || ''; }
 
 function saveKey() {
   var k = document.getElementById('keyInput').value.trim();
@@ -193,15 +189,9 @@ function changeKey() {
   document.getElementById('keyOverlay').style.display = 'flex';
 }
 
-// Check if key already saved
-if (getKey()) {
-  document.getElementById('keyOverlay').style.display = 'none';
-}
+if (getKey()) { document.getElementById('keyOverlay').style.display = 'none'; }
 
-// Allow Enter key in key input
-document.getElementById('keyInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') saveKey();
-});
+document.getElementById('keyInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') saveKey(); });
 
 function switchTab(n) {
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -255,8 +245,11 @@ function doSearch() {
   var btn = document.getElementById('searchBtn');
   btn.disabled = true;
   document.getElementById('searchResults').innerHTML = '<div class="loading"><span class="spinner"></span>Finding public domain illustrations...</div>';
-  var sys = 'You recommend public domain illustrations for cross stitch pattern makers selling on Etsy. Return ONLY a JSON array, nothing else, no markdown. Each object: title, author, date, source (BHL/Rawpixel/Met/Pictureboxblue), url, description, public_domain (true/false), stitch_fit (High/Medium/Low), reason. BHL URLs: https://www.biodiversitylibrary.org/bibliography/NUMBER. Rawpixel: https://www.rawpixel.com/search?q=TERMS&sort=curated&mode=shop&minify=true&lic=free. Met: https://www.metmuseum.org/art/collection/search?showOnly=openAccess&q=TERMS. Pictureboxblue: https://www.pictureboxblue.com/SLUG/';
-  var usr = 'Find 6 pre-1928 public domain illustrations of "' + q + '" style: ' + sty + '. Return only the JSON array.';
+
+  var sys = 'You are an expert on public domain illustration archives. Recommend specific illustrations for someone making cross stitch patterns to sell on Etsy.\n\nFocus ONLY on these four sources which have actual downloadable images:\n1. Rawpixel (rawpixel.com) - public domain section with direct image downloads\n2. Metropolitan Museum of Art (metmuseum.org) - open access CC0 collection\n3. Pictureboxblue (pictureboxblue.com) - curated vintage natural history prints\n4. Rijksmuseum (rijksmuseum.nl) - Dutch golden age and natural history prints\n\nDo NOT recommend BHL (biodiversitylibrary.org) - it is a text archive not useful for images.\n\nFor each result provide a real working URL:\n- Rawpixel search: https://www.rawpixel.com/search?q=SPECIFIC+TERMS&sort=curated&mode=shop&minify=true&lic=free\n- Rawpixel specific image: https://www.rawpixel.com/image/NUMBER/description\n- Met search: https://www.metmuseum.org/art/collection/search?showOnly=openAccess&q=TERMS\n- Pictureboxblue: https://www.pictureboxblue.com/PAGE-SLUG/\n- Rijksmuseum search: https://www.rijksmuseum.nl/en/search?q=TERMS&ii=0&p=1\n\nReturn ONLY a raw JSON array. No markdown, no explanation. Each object: title, author, date, source, url, description, public_domain (true/false), stitch_fit (High/Medium/Low), reason.';
+
+  var usr = 'Find 6 pre-1928 public domain illustrations of "' + q + '" in ' + sty + '. Focus on Rawpixel, Met, Pictureboxblue, and Rijksmuseum only. Return only the JSON array.';
+
   callClaude(sys, usr, function(err, raw) {
     btn.disabled = false;
     if (err) { document.getElementById('searchResults').innerHTML = '<div class="error-box">' + err + '</div>'; return; }
@@ -279,7 +272,7 @@ function renderResults(items, q) {
     var fitColor = item.stitch_fit === 'High' ? 'var(--green)' : item.stitch_fit === 'Medium' ? 'var(--warn)' : 'var(--muted)';
     var safeUrl = String(item.url || '').replace(/'/g, "\\'");
     var safeDesc = String(item.description || '').replace(/'/g, "\\'").substring(0, 100);
-    var viewBtn = item.url ? '<a href="' + item.url + '" target="_blank" class="btn-sm">View</a>' : '';
+    var viewBtn = item.url ? '<a href="' + item.url + '" target="_blank" class="btn-sm">View Image</a>' : '';
     html += '<div class="card">' + cpBadge + '<span style="display:inline-block;font-family:monospace;font-size:0.6rem;border:1px solid ' + fitColor + ';color:' + fitColor + ';padding:0.1rem 0.35rem;border-radius:3px;margin-bottom:0.5rem;">' + String(item.stitch_fit || '?') + ' fit</span><div class="card-title">' + title + '</div><div class="card-meta">' + String(item.author || 'Unknown') + ' - ' + String(item.date || '') + ' - ' + String(item.source || '') + '</div><div class="card-desc">' + String(item.reason || item.description || '') + '</div><div class="card-actions">' + viewBtn + '<button class="btn-sm btn-sage" onclick="goEval(\'' + safeUrl + '\',\'' + safeDesc + '\')">Evaluate</button></div></div>';
   }
   html += '</div>';
